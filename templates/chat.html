@@ -284,25 +284,75 @@
                 content: content
             });
         }
-        
+                
         function formatMessage(text) {
-            // Convert markdown-like formatting to HTML
-            let formatted = text
-                // Headers (### Title)
-                .replace(/###\s*(.+?)(\n|$)/g, '<h3>$1</h3>')
-                .replace(/##\s*(.+?)(\n|$)/g, '<h2>$1</h2>')
-                // Bold (**text**)
-                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-                // Bullet points (- item)
-                .replace(/^\s*-\s+(.+?)$/gm, '<li>$1</li>')
-                // Line breaks
-                .replace(/\n/g, '<br>');
+            // Split into lines for better processing
+            const lines = text.split('\n');
+            let html = '';
+            let inList = false;
             
-            // Wrap lists in <ul> tags
-            formatted = formatted.replace(/(<li>.*?<\/li>)/s, '<ul>$1</ul>');
+            for (let i = 0; i < lines.length; i++) {
+                let line = lines[i].trim();
+                
+                // Skip empty lines but add spacing
+                if (!line) {
+                    if (inList) {
+                        html += '</ul>';
+                        inList = false;
+                    }
+                    html += '<br>';
+                    continue;
+                }
+                
+                // Process headers
+                if (line.startsWith('###')) {
+                    if (inList) {
+                        html += '</ul>';
+                        inList = false;
+                    }
+                    html += `<h3>${line.replace(/^###\s*/, '')}</h3>`;
+                } else if (line.startsWith('##')) {
+                    if (inList) {
+                        html += '</ul>';
+                        inList = false;
+                    }
+                    html += `<h2>${line.replace(/^##\s*/, '')}</h2>`;
+                }
+                // Process bullet points
+                else if (line.match(/^[-*]\s+/)) {
+                    if (!inList) {
+                        html += '<ul>';
+                        inList = true;
+                    }
+                    const listItem = line.replace(/^[-*]\s+/, '');
+                    html += `<li>${formatInlineStyles(listItem)}</li>`;
+                }
+                // Regular paragraph
+                else {
+                    if (inList) {
+                        html += '</ul>';
+                        inList = false;
+                    }
+                    html += `<p>${formatInlineStyles(line)}</p>`;
+                }
+            }
             
-            return formatted;
+            // Close any open lists
+            if (inList) {
+                html += '</ul>';
+            }
+            
+            return html;
         }
+        
+        function formatInlineStyles(text) {
+            // Handle bold **text**
+            text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+            // Handle italic *text*
+            text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
+            return text;
+        }
+                
         function showTyping(show) {
             const indicator = document.getElementById('typingIndicator');
             indicator.className = show ? 'typing-indicator active' : 'typing-indicator';
