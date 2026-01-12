@@ -136,6 +136,103 @@ def chat():
             if places_info:
                 system_content += f"""
 
+## Real-Time Nearby Options (from Google Places):
+{places_info}
+
+IMPORTANT INSTRUCTIONS:
+- Use the Google Places data above to answer questions about what's currently nearby
+- Cross-reference with the user's trip itinerary in your knowledge base
+- Provide personalized recommendations that consider:
+  1. Current nearby options (from Google above)
+  2. The user's planned activities and schedule
+  3. What fits their trip style and preferences
+- Format your response naturally, don't just list the Google results
+- Mention if any nearby places align with their itinerary
+- Give your AI recommendation on which option is best for them
+"""
+        
+        # Do general web search if needed (and not a location query)
+        elif needs_web_search and not is_location_query:
+            print(f"Searching web for: '{user_message}'")
+            web_results = search_web_google(user_message)
+            
+            if web_results:
+                system_content += f"""
+
+## Current Web Information:
+{web_results}
+
+IMPORTANT INSTRUCTIONS:
+- Use this current web information to supplement your knowledge
+- Combine it with the user's trip itinerary
+- Provide helpful, personalized recommendations
+- Make sure information is relevant to their Japan trip
+"""
+        
+        # Initialize Azure OpenAI client
+        client = get_azure_openai_client()
+        
+        # Build messages array
+        messages = [
+            {"role": "system", "content": system_content}
+        ]
+        
+        # Add chat history (last 10 messages)
+        messages.extend(chat_history[-10:] if len(chat_history) > 10 else chat_history)
+        
+        # Add current user message
+        messages.append({"role": "user", "content": user_message})
+        
+        # Determine authentication method for Azure AI Search
+        search_api_key = os.getenv('AZURE_AI_SEARCH_API_KEY')
+        
+        if search_api_key:
+            search_auth = {
+                "type": "api_key",
+                "key": search_api_key
+            }
+        else:
+            search_auth = {
+                "type": "system_assigned_managed_identity"
+            }
+        
+        # Call Azure OpenAI with Azure AI Search integration
+        completion = client.chat.completions.create(
+            model=deployment,
+            messages=messages,
+            max_tokens=3308,
+            temperature=0.31,
+            top_p=0.95,
+            frequency_penalty=0,
+            presence_penalty=0,
+            extra_body={
+                "data_sources": [
+                    {
+                        "type": "azure_search",
+                        "parameters": {
+                            "endpoint": search_endpoint,
+                            "index_name": search_index,
+                            "authentication": search_auth
+                        }
+                    }
+                ]
+            }
+        )
+        
+        assistant_message = completion.choices[0].message.content
+        
+        return jsonify({
+            'response': assistant_message,
+            'success': True
+        })
+        
+    except Exception as e:
+        print(f"Error in chat: {str(e)}")
+        return jsonify({
+            'error': str(e),
+            'success': False
+        }), 500
+
 def search_web_google(query, num_results=5):
     """Search the web using Google Custom Search API"""
     try:
