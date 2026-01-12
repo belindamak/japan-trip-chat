@@ -100,7 +100,7 @@ def chat():
         
         # Build messages array with system prompt and history
         messages = [
-            {"role": "developer", "content": SYSTEM_PROMPT}
+            {"role": "system", "content": SYSTEM_PROMPT}
         ]
         
         # Add chat history (last 10 messages)
