@@ -201,6 +201,28 @@
             cursor: not-allowed;
         }
         
+        #locationBtn {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 12px 16px;
+            border-radius: 25px;
+            font-size: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        #locationBtn:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        #locationBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
         .welcome-message {
             text-align: center;
             padding: 40px 20px;
@@ -243,6 +265,7 @@
     </div>
     
     <div class="input-container">
+        <button id="locationBtn" onclick="sendLocation()" title="Share my location">📍</button>
         <input type="text" id="messageInput" placeholder="Ask about your Japan trip..." 
                onkeypress="handleKeyPress(event)">
         <button id="sendBtn" onclick="sendMessage()">Send</button>
@@ -405,6 +428,40 @@
                 sendBtn.disabled = false;
                 input.focus();
             }
+        }
+
+        async function sendLocation() {
+            const locationBtn = document.getElementById('locationBtn');
+            const messageInput = document.getElementById('messageInput');
+            
+            if (!navigator.geolocation) {
+                alert('Geolocation is not supported by your browser');
+                return;
+            }
+            
+            locationBtn.disabled = true;
+            locationBtn.textContent = '🔄';
+            
+            navigator.geolocation.getCurrentPosition(
+                async (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    
+                    // Send location to chat
+                    const locationMessage = `I'm currently at coordinates: ${lat.toFixed(6)}, ${lon.toFixed(6)}. What restaurants or attractions are nearby?`;
+                    messageInput.value = locationMessage;
+                    await sendMessage();
+                    
+                    locationBtn.textContent = '📍';
+                    locationBtn.disabled = false;
+                },
+                (error) => {
+                    console.error('Error getting location:', error);
+                    alert('Could not get your location. Please enable location services.');
+                    locationBtn.textContent = '📍';
+                    locationBtn.disabled = false;
+                }
+            );
         }
         
         // Focus input on load
