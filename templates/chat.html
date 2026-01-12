@@ -246,7 +246,15 @@
             const chatContainer = document.getElementById('chatContainer');
             const messageDiv = document.createElement('div');
             messageDiv.className = `message ${isUser ? 'user-message' : 'assistant-message'}`;
-            messageDiv.textContent = content;
+            
+            if (isUser) {
+                // User messages - plain text
+                messageDiv.textContent = content;
+            } else {
+                // Assistant messages - format markdown-style content
+                messageDiv.innerHTML = formatMessage(content);
+            }
+            
             chatContainer.appendChild(messageDiv);
             chatContainer.scrollTop = chatContainer.scrollHeight;
             
@@ -257,6 +265,24 @@
             });
         }
         
+        function formatMessage(text) {
+            // Convert markdown-like formatting to HTML
+            let formatted = text
+                // Headers (### Title)
+                .replace(/###\s*(.+?)(\n|$)/g, '<h3>$1</h3>')
+                .replace(/##\s*(.+?)(\n|$)/g, '<h2>$1</h2>')
+                // Bold (**text**)
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                // Bullet points (- item)
+                .replace(/^\s*-\s+(.+?)$/gm, '<li>$1</li>')
+                // Line breaks
+                .replace(/\n/g, '<br>');
+            
+            // Wrap lists in <ul> tags
+            formatted = formatted.replace(/(<li>.*?<\/li>)/s, '<ul>$1</ul>');
+            
+            return formatted;
+        }
         function showTyping(show) {
             const indicator = document.getElementById('typingIndicator');
             indicator.className = show ? 'typing-indicator active' : 'typing-indicator';
