@@ -101,70 +101,77 @@ def chat():
         user_message = data.get('message', '')
         chat_history = data.get('history', [])
         
-        # Initialize Azure OpenAI client
-        client = get_azure_openai_client()
+        # Detect if this is a location-based query
+        location_keywords = ['nearby', 'closest', 'near me', 'around here', 'close to', 'where i am', 'current location']
+        is_location_query = any(keyword in user_message.lower() for keyword in location_keywords)
         
-        # Build messages array with system prompt and history
-        messages = [
-            {"role": "system", "content": SYSTEM_PROMPT}
-        ]
+        # Detect if this needs general web search
+        web_keywords = ['happening', 'events', 'news', 'current', 'today', 'this week', 'festival', 'weather', 'latest']
+        needs_web_search = any(keyword in user_message.lower() for keyword in web_keywords)
         
-        # Add chat history (last 10 messages)
-        messages.extend(chat_history[-10:] if len(chat_history) > 10 else chat_history)
+        # Extract coordinates from message
+        lat, lon = extract_location_from_message(user_message)
         
-        # Add current user message
-        messages.append({"role": "user", "content": user_message})
+        # Initialize system content
+        system_content = SYSTEM_PROMPT
         
-        # Determine authentication method based on available credentials
-        search_api_key = os.getenv('AZURE_AI_SEARCH_API_KEY')
+        # Search nearby places if this is a location query with coordinates
+        if is_location_query and lat and lon:
+            # Extract what they're looking for (ramen, coffee, etc.)
+            search_query = user_message.lower()
+            
+            # Remove location-related words to get the actual query
+            for keyword in location_keywords + ['coordinates:', 'currently at:', 'what', 'where', 'find', 'are', 'there']:
+                search_query = search_query.replace(keyword, '')
+            
+            search_query = search_query.strip()
+            
+            # Add context based on common patterns
+            if 'restaurant' in search_query or 'food' in search_query or 'eat' in search_query:
+                search_query = f"restaurants {search_query}"
+            
+            print(f"Searching Google Places for: '{search_query}' near {lat}, {lon}")
+            places_info = search_nearby_places(lat, lon, search_query, radius=1500)
+            
+            if places_info:
+                system_content += f"""
+
+def search_web_google(query, num_results=5):
+    """Search the web using Google Custom Search API"""
+    try:
+        api_key = os.getenv('GOOGLE_SEARCH_API_KEY')
+        search_engine_id = os.getenv('GOOGLE_SEARCH_ENGINE_ID')
         
-        if search_api_key:
-            # Use API key authentication (for Render.com or other external hosting)
-            search_auth = {
-                "type": "api_key",
-                "key": search_api_key
-            }
+        if not api_key or not search_engine_id:
+            return None
+        
+        url = "https://www.googleapis.com/customsearch/v1"
+        params = {
+            'key': api_key,
+            'cx': search_engine_id,
+            'q': query,
+            'num': num_results
+        }
+        
+        response = requests.get(url, params=params, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            results = []
+            
+            for item in data.get('items', [])[:5]:
+                title = item.get('title', '')
+                snippet = item.get('snippet', '')
+                results.append(f"**{title}**\n{snippet}\n")
+            
+            return "\n".join(results) if results else None
         else:
-            # Use managed identity (for Azure deployment)
-            search_auth = {
-                "type": "system_assigned_managed_identity"
-            }
-        
-        # Call Azure OpenAI with Azure AI Search integration
-        completion = client.chat.completions.create(
-            model=deployment,
-            messages=messages,
-            max_tokens=3308,
-            temperature=0.31,
-            top_p=0.95,
-            frequency_penalty=0,
-            presence_penalty=0,
-            extra_body={
-                "data_sources": [
-                    {
-                        "type": "azure_search",
-                        "parameters": {
-                            "endpoint": search_endpoint,
-                            "index_name": search_index,
-                            "authentication": search_auth
-                        }
-                    }
-                ]
-            }
-        )
-        
-        assistant_message = completion.choices[0].message.content
-        
-        return jsonify({
-            'response': assistant_message,
-            'success': True
-        })
-        
+            print(f"Google Search error: {response.status_code}")
+            return None
+            
     except Exception as e:
-        return jsonify({
-            'error': str(e),
-            'success': False
-        }), 500
+        print(f"Error searching web: {e}")
+        return None
 
 if __name__ == '__main__':
     # For development only - use a proper WSGI server for production
