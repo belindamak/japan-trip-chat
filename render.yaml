@@ -1,0 +1,23 @@
+services:
+  - type: web
+    name: japan-trip-chat
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 2 --threads 4 --timeout 120 app:app
+    envVars:
+      - key: AZURE_OPENAI_ENDPOINT
+        sync: false
+      - key: AZURE_OPENAI_API_KEY
+        sync: false
+      - key: DEPLOYMENT_NAME
+        value: gpt-4.1-mini
+      - key: AZURE_AI_SEARCH_ENDPOINT
+        sync: false
+      - key: AZURE_AI_SEARCH_API_KEY
+        sync: false
+      - key: AZURE_AI_SEARCH_INDEX
+        value: japantripindex
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PYTHON_VERSION
+        value: 3.11.0
