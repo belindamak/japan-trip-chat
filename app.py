@@ -38,29 +38,22 @@ SYSTEM_PROMPT = """You are a travel assistant. Help me organize my trip itinerar
 - If specific instructions are provided (e.g., my current location and desired meal type or activity), prioritize those in your response. Restrict dining suggestions within a walking distance of 15-20 minutes unless otherwise specified."""
 
 def get_azure_openai_client():
-    """Initialize Azure OpenAI client with API key or managed identity"""
+    """Initialize Azure OpenAI client with API key"""
     api_key = os.getenv('AZURE_OPENAI_API_KEY')
     
-    if api_key:
-        # Use API key authentication (for Render.com or other external hosting)
-        client = AzureOpenAI(
-            azure_endpoint=endpoint,
-            api_key=api_key,
-            api_version='2024-05-01-preview',
-        )
-    else:
-        # Use managed identity (for Azure deployment)
-        cognitiveServicesResource = os.getenv('AZURE_COGNITIVE_SERVICES_RESOURCE', 'https://cognitiveservices.azure.com')
-        token_provider = get_bearer_token_provider(
-            DefaultAzureCredential(),
-            f'{cognitiveServicesResource}/.default'
-        )
-        
-        client = AzureOpenAI(
-            azure_endpoint=endpoint,
-            azure_ad_token_provider=token_provider,
-            api_version='2024-05-01-preview',
-        )
+    if not api_key:
+        raise ValueError("AZURE_OPENAI_API_KEY environment variable is required")
+    
+    # Create client without proxy settings (Render compatibility)
+    import httpx
+    http_client = httpx.Client()
+    
+    client = AzureOpenAI(
+        azure_endpoint=endpoint,
+        api_key=api_key,
+        api_version='2024-05-01-preview',
+        http_client=http_client
+    )
     return client
 
 @app.route('/')
