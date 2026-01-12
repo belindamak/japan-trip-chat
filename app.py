@@ -16,10 +16,12 @@ load_dotenv()
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', secrets.token_hex(32))
 
-# User credentials (In production, use a proper database)
-# Password is 'family2025' - you can change this
+# Get username and password from environment variables
+username = os.getenv('APP_USERNAME', 'family')
+password = os.getenv('APP_PASSWORD', 'family2025')
+
 USERS = {
-    'family': generate_password_hash('family2025')
+    username: generate_password_hash(password)
 }
 
 # Azure OpenAI Configuration
