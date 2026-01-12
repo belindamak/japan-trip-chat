@@ -43,6 +43,111 @@ SYSTEM_PROMPT = """You are a travel assistant. Help me organize my trip itinerar
 - Suggest nearby restaurants or eateries aligned with the cuisine I specify and provide sample menu prices for them.
 - If specific instructions are provided (e.g., my current location and desired meal type or activity), prioritize those in your response. Restrict dining suggestions within a walking distance of 15-20 minutes unless otherwise specified."""
 
+def search_nearby_places(lat, lon, query, radius=1000):
+    """Search for nearby places using Google Places API"""
+    try:
+        api_key = os.getenv('GOOGLE_PLACES_API_KEY')
+        if not api_key:
+            return None
+        
+        # Use Google Places API (New) - Text Search
+        url = "https://places.googleapis.com/v1/places:searchText"
+        
+        headers = {
+            'Content-Type': 'application/json',
+            'X-Goog-Api-Key': api_key,
+            'X-Goog-FieldMask': 'places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.priceLevel,places.types,places.editorialSummary,places.currentOpeningHours'
+        }
+        
+        body = {
+            "textQuery": query,
+            "locationBias": {
+                "circle": {
+                    "center": {
+                        "latitude": lat,
+                        "longitude": lon
+                    },
+                    "radius": radius
+                }
+            },
+            "maxResultCount": 10,
+            "languageCode": "en"
+        }
+        
+        response = requests.post(url, headers=headers, json=body, timeout=10)
+        
+        if response.status_code == 200:
+            data = response.json()
+            return format_places_results(data.get('places', []))
+        else:
+            print(f"Places API error: {response.status_code} - {response.text}")
+            return None
+            
+    except Exception as e:
+        print(f"Error searching places: {e}")
+        return None
+
+
+def format_places_results(places):
+    """Format Google Places results into readable text"""
+    if not places:
+        return None
+    
+    results = []
+    for i, place in enumerate(places[:5], 1):  # Top 5 results
+        name = place.get('displayName', {}).get('text', 'Unknown')
+        address = place.get('formattedAddress', 'Address not available')
+        rating = place.get('rating', 'N/A')
+        rating_count = place.get('userRatingCount', 0)
+        price_level = place.get('priceLevel', 'PRICE_LEVEL_UNSPECIFIED')
+        
+        # Convert price level
+        price_map = {
+            'PRICE_LEVEL_FREE': 'Free',
+            'PRICE_LEVEL_INEXPENSIVE': '$',
+            'PRICE_LEVEL_MODERATE': '$$',
+            'PRICE_LEVEL_EXPENSIVE': '$$$',
+            'PRICE_LEVEL_VERY_EXPENSIVE': '$$$$'
+        }
+        price = price_map.get(price_level, 'Price not available')
+        
+        # Check if open now
+        opening_hours = place.get('currentOpeningHours', {})
+        open_now = opening_hours.get('openNow', None)
+        open_status = ''
+        if open_now is not None:
+            open_status = ' - 🟢 Open now' if open_now else ' - 🔴 Closed now'
+        
+        # Get editorial summary if available
+        summary = place.get('editorialSummary', {}).get('text', '')
+        
+        result = f"{i}. **{name}**{open_status}\n"
+        result += f"   - Rating: ⭐ {rating}/5 ({rating_count} reviews)\n"
+        result += f"   - Price: {price}\n"
+        result += f"   - Address: {address}\n"
+        if summary:
+            result += f"   - About: {summary}\n"
+        
+        results.append(result)
+    
+    return "\n".join(results)
+
+
+def extract_location_from_message(message):
+    """Extract coordinates from message"""
+    import re
+    
+    # Look for coordinate pattern: "latitude, longitude"
+    coord_pattern = r'(-?\d+\.\d+),\s*(-?\d+\.\d+)'
+    match = re.search(coord_pattern, message)
+    
+    if match:
+        lat = float(match.group(1))
+        lon = float(match.group(2))
+        return lat, lon
+    
+    return None, None
+
 def get_azure_openai_client():
     """Initialize Azure OpenAI client with API key"""
     api_key = os.getenv('AZURE_OPENAI_API_KEY')
