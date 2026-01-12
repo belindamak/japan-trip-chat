@@ -1,7 +1,11 @@
 import os
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from openai import AzureOpenAI
-from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+try:
+    from azure.identity import DefaultAzureCredential, get_bearer_token_provider
+except ImportError:
+    DefaultAzureCredential = None
+    get_bearer_token_provider = None
 from dotenv import load_dotenv
 from werkzeug.security import check_password_hash, generate_password_hash
 import secrets
