@@ -20,6 +20,10 @@ app.secret_key = os.getenv('SECRET_KEY', secrets.token_hex(32))
 username = os.getenv('APP_USERNAME', 'family')
 password = os.getenv('APP_PASSWORD', 'family2025')
 
+# Debug logging (remove after testing)
+print(f"DEBUG: Username from env: {username}")
+print(f"DEBUG: Password length: {len(password)}")
+
 USERS = {
     username: generate_password_hash(password)
 }
