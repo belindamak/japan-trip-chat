@@ -212,6 +212,42 @@ def login():
     
     return render_template('login.html')
 
+@app.route('/translate', methods=['POST'])
+def translate():
+    """Translate text to Japanese"""
+    if 'user' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    
+    try:
+        data = request.json
+        text = data.get('text', '')
+        
+        client = get_azure_openai_client()
+        
+        response = client.chat.completions.create(
+            model=deployment,
+            messages=[
+                {"role": "system", "content": "You are a translator. Translate the following English text to Japanese. Return ONLY the Japanese translation, nothing else."},
+                {"role": "user", "content": text}
+            ],
+            max_tokens=200,
+            temperature=0.3
+        )
+        
+        translation = response.choices[0].message.content.strip()
+        
+        return jsonify({
+            'translation': translation,
+            'success': True
+        })
+        
+    except Exception as e:
+        print(f"Translation error: {str(e)}")
+        return jsonify({
+            'error': str(e),
+            'success': False
+        }), 500
+
 @app.route('/logout')
 def logout():
     """Handle user logout"""
