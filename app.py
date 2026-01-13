@@ -1,4 +1,5 @@
 import os
+import re
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from openai import AzureOpenAI
 try:
@@ -225,16 +226,20 @@ def chat():
             # Extract what they're looking for (ramen, coffee, etc.)
             search_query = user_message.lower()
             
-            # Remove location-related words to get the actual query
-            for keyword in location_keywords + ['coordinates:', 'currently at:', 'what', 'where', 'find', 'are', 'there']:
+            # Remove location-related words AND coordinates
+            for keyword in location_keywords + ['coordinates:', 'currently at:', 'what', 'where', 'find', 'are', 'there', 'attractions']:
                 search_query = search_query.replace(keyword, '')
             
-            search_query = search_query.strip()
+            # Remove coordinate numbers (more aggressive cleaning)
+
+            search_query = re.sub(r'-?\d+\.\d+', '', search_query)  # Remove coordinates
+            search_query = re.sub(r'[,.]', ' ', search_query)  # Remove commas/periods
+            search_query = ' '.join(search_query.split())  # Clean up extra spaces
             
-            # Add context based on common patterns
-            if 'restaurant' in search_query or 'food' in search_query or 'eat' in search_query:
-                search_query = f"restaurants {search_query}"
-            
+            # If query is too short or generic, use default
+            if len(search_query) < 3 or not search_query.strip():
+                search_query = "restaurants"
+
             print(f"Searching Google Places for: '{search_query}' near {lat}, {lon}")
             places_info = search_nearby_places(lat, lon, search_query, radius=1500)
             
