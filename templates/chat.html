@@ -418,11 +418,13 @@
         <div class="welcome-message">
             <h2>🎌 Welcome to Your Japan Trip Assistant!</h2>
             <p>I'm here to help you with your February 2025 Japan adventure. Ask me about restaurants, transportation, activities, and more!</p>
-            <div class="quick-actions">
-                <button class="quick-action-btn" onclick="quickMessage('What are we doing on Feb 18?')">📅 Today's plan</button>
-                <button class="quick-action-btn" onclick="quickMessage('Show me my itinerary')">🗺️ Full itinerary</button>
-                <button class="quick-action-btn" onclick="quickMessage('What restaurants do we have planned?')">🍜 Restaurants</button>
-            </div>
+        <div class="quick-actions">
+            <button class="quick-action-btn" onclick="quickMessage('How many days until my Japan trip?')">⏰ Days until trip</button>
+            <button class="quick-action-btn" onclick="askTodaysPlan()">📅 What's today's date?</button>
+            <button class="quick-action-btn" onclick="quickMessage('Show me my full trip itinerary')">🗺️ Full itinerary</button>
+            <button class="quick-action-btn" onclick="quickMessage('What restaurants do we have planned?')">🍜 Restaurants</button>
+            <button class="quick-action-btn" onclick="quickMessage('What should I pack for Japan in February?')">🎒 Packing tips</button>
+        </div>
         </div>
     </div>
     
@@ -441,6 +443,14 @@
 
     <script>
         let chatHistory = [];
+        
+        function askTodaysPlan() {
+            const today = new Date();
+            const options = { month: 'long', day: 'numeric', year: 'numeric' };
+            const dateString = today.toLocaleDateString('en-US', options);
+            
+            quickMessage(`Today is ${dateString}. Do I have anything planned for my Japan trip today? If not, how many days until my trip starts?`);
+        }
         
         function handleKeyPress(event) {
             if (event.key === 'Enter' && !event.shiftKey) {
