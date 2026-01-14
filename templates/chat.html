@@ -375,6 +375,47 @@
             gap: 8px;
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
         }
+
+        /* Translation Toggle Button */
+        .translation-toggle-btn {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 50%;
+            font-size: 24px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.4);
+            transition: all 0.3s;
+            z-index: 1000;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .translation-toggle-btn:hover {
+            transform: scale(1.1) translateY(-2px);
+            box-shadow: 0 6px 20px rgba(72, 187, 120, 0.6);
+        }
+        
+        .translation-toggle-btn.active {
+            background: linear-gradient(135deg, #f56565 0%, #c53030 100%);
+        }
+        
+        @media (max-width: 768px) {
+            .translation-toggle-btn {
+                bottom: 80px;
+                right: 15px;
+                width: 55px;
+                height: 55px;
+                font-size: 22px;
+            }
+        }
         
         #sendBtn:before {
             content: "✈";
@@ -505,8 +546,13 @@
         <span></span>
     </div>
     
-    <!-- ========== NEW: TRANSLATION BAR ========== -->
-    <div class="translation-bar">
+    <!-- Translation Toggle Button -->
+    <button class="translation-toggle-btn" id="translationToggle" onclick="toggleTranslationBar()" title="Toggle Translation">
+        🗣️
+    </button>
+    
+    <!-- ========== TRANSLATION BAR (Hidden by default) ========== -->
+    <div class="translation-bar" id="translationBar" style="display: none;">
         <input type="text" id="translateInput" placeholder="Type English..." 
                onkeypress="handleTranslateKeyPress(event)">
         <button class="translate-speak-btn" id="translateBtn" onclick="translateAndSpeak()" title="Speak Japanese">
@@ -548,6 +594,26 @@
             }
         }
         // ========== END NEW FUNCTION ==========
+
+        // Toggle translation bar visibility
+        function toggleTranslationBar() {
+            const bar = document.getElementById('translationBar');
+            const btn = document.getElementById('translationToggle');
+            
+            if (bar.style.display === 'none') {
+                // Show translation bar
+                bar.style.display = 'flex';
+                btn.classList.add('active');
+                btn.textContent = '✕';
+                // Focus on input
+                document.getElementById('translateInput').focus();
+            } else {
+                // Hide translation bar
+                bar.style.display = 'none';
+                btn.classList.remove('active');
+                btn.textContent = '🗣️';
+            }
+        }
         
         function logout() {
             window.location.href = '/logout';
