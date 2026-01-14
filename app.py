@@ -215,7 +215,7 @@ def login():
 
 @app.route('/translate', methods=['POST'])
 def translate():
-    """Translate text to Japanese"""
+    """Translate text to Japanese with romaji"""
     if 'user' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     
@@ -228,17 +228,21 @@ def translate():
         response = client.chat.completions.create(
             model=deployment,
             messages=[
-                {"role": "system", "content": "You are a translator. Translate the following English text to Japanese. Return ONLY the Japanese translation, nothing else."},
+                {"role": "system", "content": "You are a translator. Translate the following English text to Japanese and provide the romaji pronunciation. Format your response as: Japanese|Romaji (separated by a pipe character). Example: こんにちは|Konnichiwa"},
                 {"role": "user", "content": text}
             ],
             max_tokens=200,
             temperature=0.3
         )
         
-        translation = response.choices[0].message.content.strip()
+        result = response.choices[0].message.content.strip()
+        parts = result.split('|')
+        translation = parts[0].strip() if len(parts) > 0 else result
+        romaji = parts[1].strip() if len(parts) > 1 else ''
         
         return jsonify({
             'translation': translation,
+            'romaji': romaji,
             'success': True
         })
         
