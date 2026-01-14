@@ -726,9 +726,14 @@
                 
                 if (data.success && data.translation) {
                     const japaneseText = data.translation;
+                    const romaji = data.romaji || '';
                     
-                    // Show translation in chat
-                    addMessage(`🗣️ "${text}" → ${japaneseText}`, false);
+                    // Show translation with romaji in chat
+                    let displayMessage = `🗣️ "${text}" → ${japaneseText}`;
+                    if (romaji) {
+                        displayMessage += `\n(${romaji})`;
+                    }
+                    addMessage(displayMessage, false);
                     
                     // Speak it
                     speakJapanese(japaneseText);
