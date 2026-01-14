@@ -1,5 +1,6 @@
 import os
 import re
+import requests  
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from openai import AzureOpenAI
 try:
