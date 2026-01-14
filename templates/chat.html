@@ -308,13 +308,71 @@
         }
         /* ========== END TRANSLATION BAR STYLES ========== */
         
-        .input-container {
+        /* Bottom controls wrapper */
+        .bottom-controls {
             background: white;
-            padding: 20px;
+            padding: 15px 20px;
             border-top: 1px solid #e2e8f0;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+        }
+        
+        /* Icon buttons row */
+        .icon-buttons {
             display: flex;
             gap: 10px;
-            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.08);
+            margin-bottom: 10px;
+            justify-content: flex-start;
+        }
+        
+        /* Input container */
+        .input-container {
+            display: flex;
+            gap: 10px;
+        }
+        
+        #locationBtn, #translateToggleBtn {
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            padding: 12px 16px;
+            border-radius: 25px;
+            font-size: 22px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 50px;
+            min-height: 50px;
+        }
+        
+        #translateToggleBtn {
+            color: #48bb78;
+            border-color: #48bb78;
+        }
+        
+        #locationBtn:hover:not(:disabled) {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        #translateToggleBtn:hover:not(:disabled) {
+            background: #48bb78;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(72, 187, 120, 0.3);
+        }
+        
+        #translateToggleBtn.active {
+            background: #48bb78;
+            color: white;
+        }
+        
+        #locationBtn:disabled, #translateToggleBtn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
         
         #messageInput {
@@ -333,33 +391,6 @@
             box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
         
-        #locationBtn {
-            background: white;
-            color: #667eea;
-            border: 2px solid #667eea;
-            padding: 14px 18px;
-            border-radius: 25px;
-            font-size: 22px;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 50px;
-        }
-        
-        #locationBtn:hover:not(:disabled) {
-            background: #667eea;
-            color: white;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
-        }
-        
-        #locationBtn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-        
         #sendBtn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -374,6 +405,22 @@
             align-items: center;
             gap: 8px;
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        #sendBtn:before {
+            content: "✈";
+            font-size: 18px;
+        }
+        
+        #sendBtn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        #sendBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
         }
 
         .translation-toggle-btn {
@@ -560,11 +607,16 @@
     </div>
     <!-- ========== END TRANSLATION BAR ========== -->
     
-    <div class="input-container">
-        <button id="locationBtn" onclick="sendLocation()" title="Share my location">📍</button>
-        <input type="text" id="messageInput" placeholder="Ask about your Japan trip..." 
-               onkeypress="handleKeyPress(event)">
-        <button id="sendBtn" onclick="sendMessage()">Send</button>
+    <div class="bottom-controls">
+        <div class="icon-buttons">
+            <button id="locationBtn" onclick="sendLocation()" title="Share my location">📍</button>
+            <button id="translateToggleBtn" onclick="toggleTranslationBar()" title="Translation">🗣️</button>
+        </div>
+        <div class="input-container">
+            <input type="text" id="messageInput" placeholder="Ask about your Japan trip..." 
+                   onkeypress="handleKeyPress(event)">
+            <button id="sendBtn" onclick="sendMessage()">Send</button>
+        </div>
     </div>
 
     <script>
@@ -597,20 +649,15 @@
         // Toggle translation bar visibility
         function toggleTranslationBar() {
             const bar = document.getElementById('translationBar');
-            const btn = document.getElementById('translationToggle');
+            const btn = document.getElementById('translateToggleBtn');
             
             if (bar.style.display === 'none') {
-                // Show translation bar
                 bar.style.display = 'flex';
                 btn.classList.add('active');
-                btn.textContent = '✕';
-                // Focus on input
                 document.getElementById('translateInput').focus();
             } else {
-                // Hide translation bar
                 bar.style.display = 'none';
                 btn.classList.remove('active');
-                btn.textContent = '🗣️';
             }
         }
         
