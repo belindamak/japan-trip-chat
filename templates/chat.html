@@ -284,17 +284,21 @@
             background: white;
             color: #38a169;
             border: none;
-            padding: 12px 24px;
-            border-radius: 25px;
-            font-size: 15px;
-            font-weight: 600;
+            padding: 12px 16px;
+            border-radius: 50%;  /* Changed from 25px */
+            font-size: 24px;  /* Added */
             cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 50px;  /* Added */
+            min-height: 50px;  /* Added */
         }
         
         .translate-speak-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
+            transform: translateY(-2px) scale(1.1);  /* Added scale */
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
         
@@ -506,8 +510,8 @@
         <span class="translation-bar-label">🗣️🇯🇵</span>
         <input type="text" id="translateInput" placeholder="Type English to hear in Japanese..." 
                onkeypress="handleTranslateKeyPress(event)">
-        <button class="translate-speak-btn" id="translateBtn" onclick="translateAndSpeak()">
-            Speak Japanese
+        <button class="translate-speak-btn" id="translateBtn" onclick="translateAndSpeak()" title="Speak Japanese">
+            🔊🇯🇵
         </button>
     </div>
     <!-- ========== END TRANSLATION BAR ========== -->
@@ -706,7 +710,7 @@
             }
             
             btn.disabled = true;
-            btn.textContent = 'Translating...';
+            btn.textContent = '⏳';
             
             try {
                 const response = await fetch('/translate', {
@@ -739,7 +743,17 @@
                 alert('Translation failed. Please check your connection.');
             } finally {
                 btn.disabled = false;
-                btn.textContent = 'Speak Japanese';
+                btn.textContent = '🔊🇯🇵';
+```
+
+---
+
+## Result:
+
+Your translation bar will look like:
+```
+🗣️🇯🇵  [Type English here...]  [🔊🇯🇵]
+         ↑ input box            ↑ circular icon button
             }
         }
         
