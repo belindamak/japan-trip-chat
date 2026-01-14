@@ -265,7 +265,7 @@
         }
         
         #translateInput {
-            flex: 1;
+            max-width: 300px;  /* Added - limits width */
             padding: 12px 18px;
             border: 2px solid white;
             border-radius: 25px;
@@ -487,8 +487,8 @@
     
     <div class="chat-container" id="chatContainer">
         <div class="welcome-message">
-            <h2>🎌 Welcome to Your Japan Trip Assistant!</h2>
-            <p>I'm here to help you with your February 2025 Japan adventure. Ask me about restaurants, transportation, activities, and more!</p>
+            <h2>🎌 Welcome to our Japan Trip Assistant! Juju will be missed</h2>
+            <p>I'm here to help you with your February 2026 Japan adventure. Ask me about restaurants, transportation, activities, and more!</p>
         <div class="quick-actions">
             <button class="quick-action-btn" onclick="quickMessage('How many days until my Japan trip?')">⏰ Days until trip</button>
             <button class="quick-action-btn" onclick="askTodaysPlan()">📅 What's today's date?</button>
@@ -507,8 +507,7 @@
     
     <!-- ========== NEW: TRANSLATION BAR ========== -->
     <div class="translation-bar">
-        <span class="translation-bar-label">🗣️🇯🇵</span>
-        <input type="text" id="translateInput" placeholder="Type English to hear in Japanese..." 
+        <input type="text" id="translateInput" placeholder="Type English..." 
                onkeypress="handleTranslateKeyPress(event)">
         <button class="translate-speak-btn" id="translateBtn" onclick="translateAndSpeak()" title="Speak Japanese">
             🔊🇯🇵
