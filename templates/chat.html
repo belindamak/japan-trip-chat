@@ -265,7 +265,7 @@
         }
         
         #translateInput {
-            max-width: 600px;  /* Added - limits width */
+            max-width: 1200px;  /* Added - limits width */
             padding: 12px 18px;
             border: 2px solid white;
             border-radius: 25px;
@@ -284,8 +284,8 @@
             background: white;
             color: #38a169;
             border: none;
-            padding: 12px 16px;
-            border-radius: 50%;  /* Changed from 25px */
+            padding: 8px 12px;
+            border-radius: 30%;  /* Changed from 25px */
             font-size: 24px;  /* Added */
             cursor: pointer;
             transition: all 0.3s;
@@ -556,7 +556,7 @@
         <input type="text" id="translateInput" placeholder="Type English..." 
                onkeypress="handleTranslateKeyPress(event)">
         <button class="translate-speak-btn" id="translateBtn" onclick="translateAndSpeak()" title="Speak Japanese">
-            🔊🇯🇵
+            🔊
         </button>
     </div>
     <!-- ========== END TRANSLATION BAR ========== -->
@@ -813,7 +813,7 @@
                 alert('Translation failed. Please check your connection.');
             } finally {
                 btn.disabled = false;
-                btn.textContent = '🔊🇯🇵';
+                btn.textContent = '🔊';
             }
         }
         
